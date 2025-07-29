@@ -358,3 +358,6 @@ export function EmptyState({
     </div>
   );
 }
+
+// Export ContextMenu from its separate file
+export { ContextMenu } from './ContextMenu';

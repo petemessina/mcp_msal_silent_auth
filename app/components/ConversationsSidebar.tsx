@@ -3,7 +3,9 @@
  * Left panel showing conversation list and new chat button
  */
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
+import { useMsal } from '@azure/msal-react';
+import { ContextMenu } from './ui';
 
 interface Conversation {
   id: string;
@@ -30,6 +32,10 @@ export function ConversationsSidebar({
   onToggleSidebar,
   showSidebar
 }: ConversationsSidebarProps) {
+  const { instance, accounts } = useMsal();
+  const [showContextMenu, setShowContextMenu] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
   const formatTime = (date: Date) => {
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
@@ -48,6 +54,32 @@ export function ConversationsSidebar({
     
     return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
   };
+
+  const handleLogout = () => {
+    try {
+      // Use logoutRedirect to properly sign out the user
+      instance.logoutRedirect({
+        account: accounts[0], // Use the first account
+        postLogoutRedirectUri: window.location.origin // Redirect to home page after logout
+      });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  const contextMenuItems = [
+    {
+      id: 'logout',
+      label: 'Sign Out',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+      ),
+      onClick: handleLogout,
+      variant: 'danger' as const
+    }
+  ];
 
   return (
     <div className="h-full bg-gray-800 border-r border-gray-700 flex flex-col">
@@ -149,16 +181,31 @@ export function ConversationsSidebar({
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">You</p>
+            <p className="text-sm font-medium text-white truncate">
+              {accounts.length > 0 ? accounts[0].name || accounts[0].username : 'You'}
+            </p>
             <p className="text-xs text-gray-400">Online</p>
           </div>
           
-          <button className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors duration-200">
+          <button 
+            ref={menuButtonRef}
+            onClick={() => setShowContextMenu(!showContextMenu)}
+            className="online-menu p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors duration-200"
+            aria-label="User menu"
+          >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
             </svg>
           </button>
         </div>
+        
+        {/* Context Menu */}
+        <ContextMenu
+          isVisible={showContextMenu}
+          onClose={() => setShowContextMenu(false)}
+          items={contextMenuItems}
+          anchorEl={menuButtonRef.current}
+        />
       </div>
     </div>
   );
