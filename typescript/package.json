@@ -12,7 +12,7 @@
     "@azure/msal-browser": "^4.16.0",
     "@azure/msal-react": "^3.0.16",
     "@modelcontextprotocol/sdk": "^1.17.0",
-    "@react-router/node": "^7.7.1",
+    "@react-router/node": "^7.9.4",
     "@react-router/serve": "^7.7.1",
     "@tailwindcss/forms": "^0.5.10",
     "@types/eventsource": "^1.1.15",
